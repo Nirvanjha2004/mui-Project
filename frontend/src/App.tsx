@@ -13,7 +13,7 @@ import  SignupPage from "./Pages/SignupPage"
 function App() {
   return (
     <div>
-      <UserProfile/>
+      <UserDashboard/>
     </div>
   )
 }
