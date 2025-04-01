@@ -9,12 +9,16 @@ import { ExampleComponentDemo } from "./Pages/AdminPageWithBg"
 import CardPage from "./Pages/CardPage"
 import SigninPage from "./Pages/SigninPage"
 import  SignupPage from "./Pages/SignupPage"
+import { BrowserRouter } from "react-router-dom"
 
 function App() {
   return (
-    <div>
-      <UserDashboard/>
-    </div>
+    <BrowserRouter>
+    
+      <div>
+        <UserProfile/>
+      </div>
+    </BrowserRouter>
   )
 }
 
