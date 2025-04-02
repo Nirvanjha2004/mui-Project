@@ -4,14 +4,50 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BookOpen, EyeIcon, EyeOffIcon, ArrowRight, CheckCircle } from 'lucide-react';
+import { BookOpen, EyeIcon, EyeOffIcon, ArrowRight, CheckCircle, Loader } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 function SigninPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { login, error } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!email || !password) {
+      setFormError('Email and password are required');
+      return;
+    }
+    
+    setFormError(null);
+    setIsSubmitting(true);
+    
+    try {
+      const userData = await login(email, password);
+      
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setFormError(err.response?.data?.message || 'Failed to login. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4">
@@ -25,79 +61,99 @@ function SigninPage() {
         </div>
         
         <Card className="border-none shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-            <CardDescription className="text-center">
-              Sign in to your account to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="john@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)} 
-                className="h-11"
-              />
-            </div>
-            
-            {/* Password Field */}
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="password">Password</Label>
-                <a href="/forgot-password" className="text-xs text-blue-600 hover:underline">
-                  Forgot password?
+          <form onSubmit={handleSubmit}>
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
+              <CardDescription className="text-center">
+                Sign in to your account to continue
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Error message */}
+              {(formError || error) && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>
+                    {formError || error}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="john@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)} 
+                  className="h-11"
+                />
+              </div>
+              
+              {/* Password Field */}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <a href="/forgot-password" className="text-xs text-blue-600 hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-11 pr-10"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Remember Me */}
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <label
+                  htmlFor="remember"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Remember me
+                </label>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-4">
+              <Button 
+                type="submit" 
+                className="w-full h-11 text-base bg-blue-600 hover:bg-blue-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <Loader size={18} className="animate-spin" />
+                    Signing in...
+                  </div>
+                ) : "Sign in"}
+              </Button>
+              <div className="text-center text-sm">
+                Don't have an account?{" "}
+                <a href="/signup" className="text-blue-600 hover:underline font-medium">
+                  Create account
                 </a>
               </div>
-              <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pr-10"
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
-                </button>
-              </div>
-            </div>
-            
-            {/* Remember Me */}
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked === true)}
-              />
-              <label
-                htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Remember me
-              </label>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button className="w-full h-11 text-base bg-blue-600 hover:bg-blue-700">
-              Sign in
-            </Button>
-            <div className="text-center text-sm">
-              Don't have an account?{" "}
-              <a href="/signup" className="text-blue-600 hover:underline font-medium">
-                Create account
-              </a>
-            </div>
-          </CardFooter>
+            </CardFooter>
+          </form>
         </Card>
         
         {/* Features Preview */}

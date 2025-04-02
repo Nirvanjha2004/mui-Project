@@ -1,14 +1,12 @@
 import mongoose from 'mongoose';
 
-export const connectDB = async (): Promise<void> => {
+export const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mui-project';
+    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/quizmaster');
     
-    await mongoose.connect(mongoURI);
-    
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error: any) {
+    console.error(`Error connecting to database: ${error.message}`);
     process.exit(1);
   }
 };

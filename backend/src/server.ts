@@ -17,12 +17,15 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN || '*', // Allow any origin if not specified
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: false // Set to false to avoid CORS preflight issues
 }));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for development
+  crossOriginEmbedderPolicy: false // Disable for development
+}));
 app.use(morgan('dev'));
 
 // Routes
@@ -35,7 +38,7 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
+  console.error('Server error:', err.stack);
   res.status(500).json({
     message: 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined

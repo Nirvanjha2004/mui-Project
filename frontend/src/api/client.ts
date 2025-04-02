@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Important for cookies/authentication
+  withCredentials: false, // Change to false if CORS issues occur
 });
 
 // Request interceptor for adding auth token or other headers
@@ -21,6 +21,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -29,12 +30,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('Response error:', error);
     const { response } = error;
     
     if (response && response.status === 401) {
       // Handle unauthorized access
+      console.log('Authentication error, logging out...');
       localStorage.removeItem('auth_token');
       // Optional: redirect to login
+      window.location.href = '/signin';
     }
     
     return Promise.reject(error);

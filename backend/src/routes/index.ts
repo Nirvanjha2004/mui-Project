@@ -1,13 +1,20 @@
-import { Router } from 'express';
-import userRoutes from './user.routes';
+import express from 'express';
+import authRoutes from './auth';
+import userRoutes from './users';
+import testRoutes from './tests';
+import leaderboardRoutes from './leaderboard';
 
-const router = Router();
+const router = express.Router();
 
-// Mount route groups
+// Health check
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'API is running' });
+});
+
+// Mount routes
+router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
-
-// Add more routes as needed
-// router.use('/products', productRoutes);
-// router.use('/orders', orderRoutes);
+router.use('/tests', testRoutes);
+router.use('/leaderboard', leaderboardRoutes);
 
 export default router;

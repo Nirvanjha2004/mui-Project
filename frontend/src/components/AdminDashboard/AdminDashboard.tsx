@@ -1,193 +1,317 @@
-import React, { useState } from "react";
-import CardComp from "./Card";
-import Navbar from "./Navbar";
-import { DataTableDemo } from "./LeaderBoard";
-import CreateTest2 from "./CreateTest2";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { CalendarIcon, ChartBarIcon, UsersIcon, PlusCircleIcon, BookIcon } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import UserNavbar from '../UserDashboard/UserNavbar';
+import CardComp from './Card';
+import { 
+  Bar, 
+  BarChart, 
+  ResponsiveContainer, 
+  XAxis, 
+  YAxis, 
+  Tooltip,
+  LineChart,
+  Line,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Users, BookOpen, FileText, Award, TrendingUp, PlusCircle } from 'lucide-react';
 
-function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  
+// Sample data for charts
+const userData = [
+  { name: 'Jan', total: 12 },
+  { name: 'Feb', total: 18 },
+  { name: 'Mar', total: 25 },
+  { name: 'Apr', total: 20 },
+  { name: 'May', total: 32 },
+  { name: 'Jun', total: 45 },
+  { name: 'Jul', total: 55 },
+];
+
+const testCompletionData = [
+  { name: 'Completed', value: 540 },
+  { name: 'Abandoned', value: 80 },
+  { name: 'In Progress', value: 45 },
+];
+
+const COLORS = ['#0088FE', '#FF8042', '#FFBB28'];
+
+const testTrendData = [
+  { name: 'Week 1', attempts: 40, completions: 32 },
+  { name: 'Week 2', attempts: 30, completions: 25 },
+  { name: 'Week 3', attempts: 55, completions: 49 },
+  { name: 'Week 4', attempts: 70, completions: 62 },
+];
+
+const AdminDashboard = () => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Navigation handlers
+  const handleCreateTest = () => {
+    navigate('/admin/tests/create');
+  };
+
+  const handleViewUsers = () => {
+    navigate('/admin/users');
+  };
+
+  const handleManageTests = () => {
+    navigate('/admin/tests');
+  };
+
+  const handleViewResults = () => {
+    navigate('/admin/results');
+  };
+
+  const handleViewPerformance = () => {
+    navigate('/admin/performance');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
+      <UserNavbar username={user?.name} />
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-gray-500 mt-1">Manage tests, view statistics, and track performance.</p>
-        </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <ChartBarIcon size={16} />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="tests" className="flex items-center gap-2">
-              <BookIcon size={16} />
-              Manage Tests
-            </TabsTrigger>
-            <TabsTrigger value="create" className="flex items-center gap-2">
-              <PlusCircleIcon size={16} />
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="flex flex-col gap-6">
+          {/* Dashboard Header */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            
+            {/* Create Test Button */}
+            <Button 
+              onClick={handleCreateTest}
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 self-start md:self-auto"
+            >
+              <PlusCircle size={18} />
               Create Test
-            </TabsTrigger>
-          </TabsList>
-          
-          {/* Dashboard Tab */}
-          <TabsContent value="dashboard">
-            <div className="space-y-8">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="overflow-hidden border-none shadow-md transition-all hover:shadow-lg">
-                  <CardHeader className="bg-blue-50 dark:bg-blue-900/20 pb-2">
-                    <CardDescription>Total Tests</CardDescription>
-                    <CardTitle className="text-3xl font-bold text-blue-700 dark:text-blue-400">2,563</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
+            </Button>
+          </div>
+
+          {/* Welcome Message */}
+          <div className="text-sm text-gray-500 dark:text-gray-400 -mt-4">
+            Welcome back, {user?.name}. Here's an overview of your platform.
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CardComp 
+              title="Total Users"
+              description="Active platform users"
+              value="125"
+              buttonText="View All Users"
+              icon={<Users className="h-6 w-6 text-blue-600" />}
+              onClick={handleViewUsers}
+            />
+            
+            <CardComp 
+              title="Total Tests"
+              description="Available tests"
+              value="28"
+              buttonText="Manage Tests"
+              icon={<BookOpen className="h-6 w-6 text-green-600" />}
+              onClick={handleManageTests}
+            />
+            
+            <CardComp 
+              title="Submissions"
+              description="Total test attempts"
+              value="831"
+              buttonText="View Results"
+              icon={<FileText className="h-6 w-6 text-purple-600" />}
+              onClick={handleViewResults}
+            />
+
+            <CardComp 
+              title="Avg. Score"
+              description="Overall performance"
+              value="76%"
+              buttonText="Performance"
+              icon={<Award className="h-6 w-6 text-yellow-600" />}
+              onClick={handleViewPerformance}
+            />
+          </div>
+
+          {/* Content Tabs */}
+          <Tabs defaultValue="overview" className="w-full mt-4">
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="users" onClick={() => navigate('/admin/users')}>Users</TabsTrigger>
+              <TabsTrigger value="tests" onClick={() => navigate('/admin/tests')}>Tests</TabsTrigger>
+            </TabsList>
+
+            {/* Overview Tab Content */}
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* User Growth Chart */}
+                <Card>
+                  <CardHeader>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">This month</span>
-                      <span className="text-sm font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full">
-                        +21%
-                      </span>
+                      <CardTitle className="text-lg font-medium">User Growth</CardTitle>
+                      <TrendingUp className="h-5 w-5 text-blue-600" />
                     </div>
+                    <CardDescription>New user registrations over time</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pl-2">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={userData}>
+                        <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                        <Tooltip />
+                        <Bar dataKey="total" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
-                
-                <Card className="overflow-hidden border-none shadow-md transition-all hover:shadow-lg">
-                  <CardHeader className="bg-green-50 dark:bg-green-900/20 pb-2">
-                    <CardDescription>Active Users</CardDescription>
-                    <CardTitle className="text-3xl font-bold text-green-700 dark:text-green-400">1,845</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
+
+                {/* Test Completion Status */}
+                <Card>
+                  <CardHeader>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">This month</span>
-                      <span className="text-sm font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
-                        +15%
-                      </span>
+                      <CardTitle className="text-lg font-medium">Test Completion Status</CardTitle>
+                      <FileText className="h-5 w-5 text-green-600" />
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="overflow-hidden border-none shadow-md transition-all hover:shadow-lg">
-                  <CardHeader className="bg-purple-50 dark:bg-purple-900/20 pb-2">
-                    <CardDescription>Total Referrals</CardDescription>
-                    <CardTitle className="text-3xl font-bold text-purple-700 dark:text-purple-400">836</CardTitle>
+                    <CardDescription>Distribution of test completion states</CardDescription>
                   </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">This month</span>
-                      <span className="text-sm font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-full">
-                        +8%
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="overflow-hidden border-none shadow-md transition-all hover:shadow-lg">
-                  <CardHeader className="bg-amber-50 dark:bg-amber-900/20 pb-2">
-                    <CardDescription>Avg Completion Time</CardDescription>
-                    <CardTitle className="text-3xl font-bold text-amber-700 dark:text-amber-400">24m</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">This month</span>
-                      <span className="text-sm font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
-                        -5%
-                      </span>
+                  <CardContent className="flex justify-center">
+                    <div className="w-full h-[300px] flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={testCompletionData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={90}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {testCompletionData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              
-              {/* Leaderboard */}
-              <Card className="border-none shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-2xl font-bold">Recent Leaderboard</CardTitle>
-                  <CardDescription>Top performers from the last 30 days</CardDescription>
+
+              {/* Test Attempts vs Completions */}
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg font-medium">Test Attempts vs. Completions</CardTitle>
+                    <Award className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <CardDescription>Weekly test engagement metrics</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <DataTableDemo />
+                <CardContent className="pl-2">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={testTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="attempts" stroke="#8884d8" activeDot={{ r: 8 }} />
+                      <Line type="monotone" dataKey="completions" stroke="#82ca9d" />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
-              
-              {/* Recent Activity */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-none shadow-md md:col-span-2">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium">Recent Tests</CardTitle>
-                    <CardDescription>Latest tests created or modified</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
-                            <BookIcon size={20} />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium">Advanced JavaScript Test {i}</h4>
-                            <p className="text-sm text-gray-500">Modified {i} day{i > 1 ? 's' : ''} ago</p>
-                          </div>
-                          <div className="text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full">
-                            {['Active', 'Draft', 'Completed'][i-1]}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-none shadow-md">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium">User Activity</CardTitle>
-                    <CardDescription>Today's active users</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium">
-                            {['JD', 'AS', 'MK', 'TP'][i-1]}
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{['John Doe', 'Alice Smith', 'Mark Kim', 'Tom Parker'][i-1]}</h4>
-                            <p className="text-xs text-gray-500">Completed {i} test{i > 1 ? 's' : ''}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* Tests Tab */}
-          <TabsContent value="tests">
-            <Card className="border-none shadow-md">
-              <CardHeader>
-                <CardTitle>Test Management</CardTitle>
-                <CardDescription>View and manage your existing tests</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center py-8 text-gray-500">
-                  Your test management interface would go here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Create Test Tab */}
-          <TabsContent value="create">
-            <CreateTest2 />
-          </TabsContent>
-        </Tabs>
-      </div>
+            </TabsContent>
+
+            {/* Users Tab Content */}
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle>User Management</CardTitle>
+                  <CardDescription>View and manage platform users</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">
+                    User management interface will be implemented here. Currently in development.
+                  </p>
+                  <Button 
+                    className="mt-4 bg-blue-600" 
+                    onClick={() => navigate('/admin/users')}
+                  >
+                    Go to Full User Management
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tests Tab Content */}
+            <TabsContent value="tests">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Test Management</CardTitle>
+                  <CardDescription>Create and manage quiz tests</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">
+                    Test management interface will be implemented here. Currently in development.
+                  </p>
+                  <div className="flex gap-4 mt-4">
+                    <Button 
+                      className="bg-blue-600" 
+                      onClick={() => navigate('/admin/tests')}
+                    >
+                      View All Tests
+                    </Button>
+                    <Button 
+                      className="bg-green-600" 
+                      onClick={handleCreateTest}
+                    >
+                      Create New Test
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
     </div>
   );
-}
+};
 
 export default AdminDashboard;

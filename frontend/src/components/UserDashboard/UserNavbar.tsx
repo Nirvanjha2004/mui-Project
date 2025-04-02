@@ -17,7 +17,10 @@ import {
   LogOut,
   Book,
   Home,
-  BarChart2
+  BarChart2,
+  ShieldAlert,
+  Edit,
+  Users
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -28,22 +31,40 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface UserNavbarProps {
   username?: string;
 }
 
-function UserNavbar({ username = "User" }: UserNavbarProps) {
+function UserNavbar({ username }: UserNavbarProps) {
   const [theme, setTheme] = useState("light");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Use provided username or get from auth context
+  const displayName = username || user?.name || 'User';
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
     // Implement actual theme switching logic here
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
+
   const unreadNotifications = 3;
+
+  // Add admin-specific links
+  const adminLinks = [
+    { label: "Admin Dashboard", icon: ShieldAlert, href: "/admin" },
+    { label: "Manage Tests", icon: Edit, href: "/admin/tests" },
+    { label: "User Management", icon: Users, href: "/admin/users" },
+  ];
 
   const navLinks = [
     { label: "Dashboard", icon: Home, href: "/dashboard" },
@@ -82,6 +103,25 @@ function UserNavbar({ username = "User" }: UserNavbarProps) {
                         {link.label}
                       </Link>
                     ))}
+                    
+                    {/* Admin section in mobile menu */}
+                    {user?.role === 'admin' && (
+                      <>
+                        <div className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Admin
+                        </div>
+                        {adminLinks.map((link, i) => (
+                          <Link 
+                            key={i} 
+                            to={link.href}
+                            className="flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <link.icon className="mr-3 h-5 w-5 text-gray-500" />
+                            {link.label}
+                          </Link>
+                        ))}
+                      </>
+                    )}
                   </div>
                   
                   <div className="border-t border-gray-200 dark:border-gray-600 pt-4 mt-6">
@@ -100,7 +140,8 @@ function UserNavbar({ username = "User" }: UserNavbarProps) {
                       Settings
                     </Link>
                     <button 
-                      className="flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left text-red-500"
+                      className="flex w-full items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-left text-red-500"
+                      onClick={handleLogout}
                     >
                       <LogOut className="mr-3 h-5 w-5" />
                       Log Out
@@ -127,6 +168,27 @@ function UserNavbar({ username = "User" }: UserNavbarProps) {
                 {link.label}
               </Link>
             ))}
+            
+            {/* Only show admin links for admin users */}
+            {user?.role === 'admin' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="px-3 py-2 h-auto rounded-md text-sm font-medium">
+                    Admin <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {adminLinks.map((link, i) => (
+                    <DropdownMenuItem key={i} asChild>
+                      <Link to={link.href} className="flex items-center">
+                        <link.icon className="mr-2 h-4 w-4" />
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* Search bar - hidden on smaller screens */}
@@ -200,34 +262,34 @@ function UserNavbar({ username = "User" }: UserNavbarProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/assets/avatars/user.jpg" alt="User" />
-                    <AvatarFallback className="bg-blue-100 text-blue-800">{username.charAt(0)}</AvatarFallback>
+                    <AvatarImage src="/assets/avatars/user.jpg" alt={displayName} />
+                    <AvatarFallback className="bg-blue-100 text-blue-800">{displayName.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:inline-flex text-sm font-medium">{username}</span>
+                  <span className="hidden md:inline-flex text-sm font-medium">{displayName}</span>
                   <ChevronDown size={16} className="opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/results')}>
                   <FileText className="mr-2 h-4 w-4" />
                   <span>My Results</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/settings')}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/help')}>
                   <HelpCircle className="mr-2 h-4 w-4" />
                   <span>Help & Support</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-red-500">
+                <DropdownMenuItem className="cursor-pointer text-red-500" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log Out</span>
                 </DropdownMenuItem>

@@ -1,29 +1,12 @@
 import apiClient from './client';
+import userService from './services/userService';
+import testService from './services/testService';
+import leaderboardService from './services/leaderboardService';
 
-// Example user service
-export const userService = {
-  // Get current user
-  getCurrentUser: () => apiClient.get('/users/me'),
-  
-  // Login
-  login: (credentials: { email: string; password: string }) => 
-    apiClient.post('/auth/login', credentials),
-  
-  // Register
-  register: (userData: { name: string; email: string; password: string }) => 
-    apiClient.post('/auth/register', userData),
+export {
+  userService,
+  testService,
+  leaderboardService
 };
 
-// Add more services as needed for different resources
-// Example:
-export const productService = {
-  getAll: () => apiClient.get('/products'),
-  getById: (id: string) => apiClient.get(`/products/${id}`),
-  // etc.
-};
-
-export default {
-  user: userService,
-  product: productService,
-  // Add other services here
-};
+export default apiClient;
